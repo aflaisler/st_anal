@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import datetime
 from pandas_summary import DataFrameSummary
+from sklearn.preprocessing import normalize as nm
 
 # http://www.learndatasci.com/python-finance-part-yahoo-finance-api-pandas-matplotlib/
 # Define the instruments to download. We would like to see Apple,
@@ -34,92 +35,121 @@ s9 = ["MPC", "MUR", "NOV", "NFX", "NBL", "OXY", "OKE", "PSX", "PXD",
 # "TDG", "UNP", "UAL", "UPS", "URI", "UTX", "VRSK", "WM", "XYL", "ACN", "ATVI", "ADBE", "AMD", "AKAM", "ADS", "GOOGL", "GOOG", "APH", "ADI", "ANSS", "AAPL", "AMAT", "ADSK", "ADP", "AVGO", "CA", "CSCO", "CTXS", "CTSH", "GLW", "CSRA", "DXC", "EBAY", "EA", "FFIV", "FB", "FIS", "FISV", "FLIR", "IT", "GPN", "HRS", "HPE", "HPQ", "INTC", "IBM", "INTU", "JNPR", "KLAC", "LRCX", "MA", "MCHP",
 #  "MU", "MSFT", "MSI", "NTAP", "NFLX", "NVDA", "ORCL", "PAYX", "PYPL", "QRVO", "QCOM", "RHT", "CRM", "STX", "SWKS", "SYMC", "SNPS", "TEL", "TXN", "TSS", "VRSN", "V", "WDC", "WU", "XRX", "XLNX", "APD", "ALB", "AVY", "BLL", "CF", "DOW", "DD", "EMN", "ECL", "FMC", "FCX", "IP", "IFF", "LYB", "MLM", "MON", "MOS", "NEM", "NUE", "PPG", "PX", "SEE", "SHW", "VMC", "WRK", "ARE", "AMT", "AIV", "AVB", "BXP", "CBG", "CCI", "DLR", "EQIX", "EQR", "ESS", "EXR", "FRT", "GGP", "HCP", "HST", "IRM", "KIM", "MAC", "MAA", "PLD", "PSA", "O", "REG", "SPG", "SLG", "UDR", "VTR", "VNO", "HCN", "WY", "T", "CTL", "LVLT", "VZ", "AES", "LNT", "AEE", "AEP", "AWK", "CNP", "CMS", "ED", "D", "DTE", "DUK", "EIX", "ETR", "ES", "EXC", "FE", "NEE", "NI", "NRG", "PCG", "PNW", "PPL", "PEG", "SCG", "SRE", "SO", "WEC", "XEL"]
 lst = [s1, s2, s3, s4, s5, s6, s7, s8, s9, s9]
-# lst = [s1]
-tickers = []
-for ls in lst:
-    tickers.extend(ls)
-
-# len(tickers)
-
-# Define which online source one should use
-data_source = 'google'
-
-# We would like all available data from 01/01/2000 until 12/31/2016.
-start_date = '2016-01-04'
-end_date = datetime.date.today().strftime('%Y-%m-%d')
-
-# User pandas_reader.data.DataReader to load the desired data. As simple
-# as that.
-panel_data = data.DataReader(tickers, data_source, start_date, end_date)
-
-# Getting just the adjusted closing prices. This will return a Pandas DataFrame
-# The index in this DataFrame is the major index of the panel_data.
-close = panel_data.loc['Close']
-
-# Getting all weekdays between 01/01/2000 and 12/31/2016
-all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
-
-# How do we align the existing prices in adj_close with our new set of dates?
-# All we need to do is reindex close using all_weekdays as the new index
-close = close.reindex(all_weekdays)
-
-# close.tail(10)
+lst = [s1]
 
 
-#
-# close['AMZN']
+def load_data(lst):
+    tickers = []
+    for ls in lst:
+        tickers.extend(ls)
 
-# Getting just the  closing prices. This will return a Pandas DataFrame
-# The index in this DataFrame is the major index of the panel_data.
-close = panel_data.loc['Close']
+    # len(tickers)
 
-# Getting all weekdays between 01/01/2000 and 12/31/2016
-all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
+    # Define which online source one should use
+    data_source = 'google'
 
-# How do we align the existing prices in close with our new set of dates?
-# All we need to do is reindex close using all_weekdays as the new index
-close = close.reindex(all_weekdays)
+    # We would like all available data from 01/01/2000 until 12/31/2016.
+    start_date = '2017-01-04'
+    end_date = datetime.date.today().strftime('%Y-%m-%d')
 
-# Reindexing will insert missing values (NaN) for the dates that were not present
-# in the original set. To cope with this, we can fill the missing by replacing them
-# with the latest available price for each instrument.
-adj_close = close.fillna(method='ffill')
+    # User pandas_reader.data.DataReader to load the desired data. As simple
+    # as that.
+    panel_data = data.DataReader(tickers, data_source, start_date, end_date)
 
-# adj_close = adj_close.dropna(axis=1, how='all')
+    # Getting just the adjusted closing prices. This will return a Pandas DataFrame
+    # The index in this DataFrame is the major index of the panel_data.
+    close = panel_data.loc['Close']
 
-adj_close = adj_close.dropna(thresh=adj_close.shape[0] - 2, axis=1)
-# adj_close=adj_close.dropna(axis=0)
-# adj_close.tail(10)
+    # Getting all weekdays between 01/01/2000 and 12/31/2016
+    all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
+
+    # How do we align the existing prices in adj_close with our new set of dates?
+    # All we need to do is reindex close using all_weekdays as the new index
+    close = close.reindex(all_weekdays)
+
+    # close.tail(10)
+
+    #
+    # close['AMZN']
+
+    # Getting just the  closing prices. This will return a Pandas DataFrame
+    # The index in this DataFrame is the major index of the panel_data.
+    close = panel_data.loc['Close']
+
+    # Getting all weekdays between 01/01/2000 and 12/31/2016
+    all_weekdays = pd.date_range(start=start_date, end=end_date, freq='B')
+
+    # How do we align the existing prices in close with our new set of dates?
+    # All we need to do is reindex close using all_weekdays as the new index
+    close = close.reindex(all_weekdays)
+
+    # Reindexing will insert missing values (NaN) for the dates that were not present
+    # in the original set. To cope with this, we can fill the missing by replacing them
+    # with the latest available price for each instrument.
+    adj_close = close.fillna(method='ffill')
+
+    # adj_close = adj_close.dropna(axis=1, how='all')
+
+    adj_close = adj_close.dropna(thresh=adj_close.shape[0] - 2, axis=1)
+    # adj_close=adj_close.dropna(axis=0)
+    # adj_close.tail(10)
+
+    # adj_close.describe()
+    # dfs = DataFrameSummary(adj_close)
+    # dfs.columns_stats
+    print adj_close.shape
+    return adj_close
 
 
-# adj_close.describe()
-dfs = DataFrameSummary(adj_close)
-dfs.columns_stats
-adj_close.shape
+def plot_stock(adj_close):
+    # adj_close.to_clipboard()
+    # tickers = ['AMZN']
+    stocks = adj_close.columns
 
-# adj_close.to_clipboard()
-# tickers = ['AMZN']
-stocks = adj_close.columns
+    for stock in stocks:
+        # Get the stock time series. This now returns a Pandas Series object
+        # indexed by date
+        stk_name = stock
+        stock = adj_close.loc[:, stock]
+        # Calculate the 20 and 100 days moving averages of the closing prices
+        short_rolling_stock = stock.rolling(window=20).mean()
+        long_rolling_stock = stock.rolling(window=100).mean()
 
-for stock in stocks:
-    # Get the stock time series. This now returns a Pandas Series object
-    # indexed by date
-    stk_name = stock
-    stock = adj_close.loc[:, stock]
-    # Calculate the 20 and 100 days moving averages of the closing prices
-    short_rolling_stock = stock.rolling(window=20).mean()
-    long_rolling_stock = stock.rolling(window=100).mean()
+        # Plot everything by leveraging the very powerful matplotlib package
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        plt.title(stk_name)
+        ax.plot(stock.index, stock, label=stock)
+        ax.plot(short_rolling_stock.index,
+                short_rolling_stock, label='20 days rolling')
+        ax.plot(long_rolling_stock.index,
+                long_rolling_stock, label='100 days rolling')
+        # ax.set_xlabel('Date')
+        # ax.set_ylabel('Adjusted closing price ($)')
+        # ax.legend()
+    plt.show()
 
-    # Plot everything by leveraging the very powerful matplotlib package
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    plt.title(stk_name)
-    ax.plot(stock.index, stock, label=stock)
-    ax.plot(short_rolling_stock.index,
-            short_rolling_stock, label='20 days rolling')
-    ax.plot(long_rolling_stock.index,
-            long_rolling_stock, label='100 days rolling')
-    # ax.set_xlabel('Date')
-    # ax.set_ylabel('Adjusted closing price ($)')
-    # ax.legend()
-plt.show()
+
+# correlation
+def get_stk_corr(adj_close, stk, thres=.9):
+    df = adj_close.copy()
+    stocks = df.columns
+    corr = []
+    for stock in stocks:
+        corr.append(df[stk].corr(df.loc[:, stock]))
+
+    df_corr = pd.DataFrame(corr).T
+    df_corr.columns = stocks
+    df = df.append(df_corr)
+    # df.loc[0]
+    df_out = df.loc[:, df.loc[0] > thres]
+    # remove correlation coef
+    df_out = df_out.iloc[:-1, :]
+    return df_out.columns, df_out
+
+
+if __name__ == '__main__':
+    adj_close = load_data(lst)
+    # plot_stock(adj_close)
+    corr_col, df_corr = get_stk_corr(adj_close, 'AMZN', thres=.9)
+    plot_stock(df_corr)
