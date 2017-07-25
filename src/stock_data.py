@@ -1,8 +1,11 @@
 from pandas_datareader import data
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import datetime
 from pandas_summary import DataFrameSummary
 
+# http://www.learndatasci.com/python-finance-part-yahoo-finance-api-pandas-matplotlib/
 # Define the instruments to download. We would like to see Apple,
 # Microsoft and the S&P500 index.
 tickers = ['AAPL', 'MSFT', 'SPY']
@@ -92,25 +95,31 @@ adj_close = adj_close.dropna(thresh=adj_close.shape[0] - 2, axis=1)
 # adj_close.describe()
 dfs = DataFrameSummary(adj_close)
 dfs.columns_stats
+adj_close.shape
 
-# adj_close.shape
 # adj_close.to_clipboard()
+# tickers = ['AMZN']
+stocks = adj_close.columns
 
+for stock in stocks:
+    # Get the stock time series. This now returns a Pandas Series object
+    # indexed by date
+    stk_name = stock
+    stock = adj_close.loc[:, stock]
+    # Calculate the 20 and 100 days moving averages of the closing prices
+    short_rolling_stock = stock.rolling(window=20).mean()
+    long_rolling_stock = stock.rolling(window=100).mean()
 
-# Get the MSFT time series. This now returns a Pandas Series object
-# indexed by date.
-msft = adj_close.ix[:, 'MSFT']
-# Calculate the 20 and 100 days moving averages of the closing prices
-short_rolling_msft = msft.rolling(window=20).mean()
-long_rolling_msft = msft.rolling(window=100).mean()
-
-# Plot everything by leveraging the very powerful matplotlib package
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-ax.plot(msft.index, msft, label='MSFT')
-ax.plot(short_rolling_msft.index, short_rolling_msft, label='20 days rolling')
-ax.plot(long_rolling_msft.index, long_rolling_msft, label='100 days rolling')
-ax.set_xlabel('Date')
-ax.set_ylabel('Adjusted closing price ($)')
-ax.legend()
+    # Plot everything by leveraging the very powerful matplotlib package
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    plt.title(stk_name)
+    ax.plot(stock.index, stock, label=stock)
+    ax.plot(short_rolling_stock.index,
+            short_rolling_stock, label='20 days rolling')
+    ax.plot(long_rolling_stock.index,
+            long_rolling_stock, label='100 days rolling')
+    # ax.set_xlabel('Date')
+    # ax.set_ylabel('Adjusted closing price ($)')
+    # ax.legend()
 plt.show()
